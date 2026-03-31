@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<title>모두연 AI 비서</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body,#root{height:100%;overflow:hidden}
+body{font-family:'Apple SD Gothic Neo','Pretendard','Noto Sans KR',sans-serif;background:#0f172a;color:#e2e8f0;touch-action:manipulation}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+const NOTION_TASKS = [
+  {id:1,text:"[계약] 항공권 및 전세버스 1차 예약 (성수기 물량 선점)",status:"시작 전",deadline:"2026-04-03",project:"런케이션"},
+  {id:2,text:"[기획] 제주 카카오 강사 배정 및 일정 조율",status:"진행 중",deadline:"2026-04-06",project:"런케이션"},
+  {id:3,text:"[검토] 현지 업체(버스/식당) 계약서 법무 검토 요청",status:"시작 전",deadline:"2026-04-24",project:"런케이션"},
+  {id:4,text:"[공문] 제주대 기숙사 예약 완료",status:"시작 전",deadline:"2026-04-24",project:"런케이션"},
+  {id:5,text:"제주도 프로그램 운영 협의 완료",status:"시작 전",deadline:"2026-05-08",project:"런케이션"},
+  {id:6,text:"[답사] 운영진 사전 현지 답사 (1박 2일)",status:"시작 전",deadline:"2026-06-12",project:"런케이션"},
+  {id:7,text:"[보고] 런케이션 최종 운영 큐시트 및 비상 연락망 보고",status:"시작 전",deadline:"2026-06-19",project:"런케이션"},
+  {id:8,text:"[정산] 결과 보고서 작성 및 비용 증빙 제출",status:"시작 전",deadline:"2026-07-31",project:"런케이션"},
+  {id:9,text:"[디자인] 모두연 취업 멘토 소개 페이지 제작(노션)",status:"시작 전",deadline:"2026-04-02",project:"취업률"},
+  {id:10,text:"[코칭] 4월 1주 멘토링 정상 운영 준비 완료",status:"시작 전",deadline:"2026-04-03",project:"취업률"},
+  {id:11,text:"[공유] 훈련생 유형별 맞춤 취업 지원 서비스 내부 공유",status:"진행 중",deadline:"2026-04-03",project:"취업률"},
+  {id:12,text:"[기획] 그룹바이 실무 협업 트랙 논의 및 액션아이템 도출",status:"진행 중",deadline:"2026-04-10",project:"취업률",blocked:"그룹바이 측 제안 대기"},
+  {id:13,text:"[협의] 훈련생 PBL 포트폴리오 작성 솔루션 재기획",status:"시작 전",deadline:"2026-04-17",project:"취업률"},
+  {id:14,text:"[행정/법무] AI 솔루션 계약 완료",status:"진행 중",deadline:"2026-04-24",project:"취업률"},
+  {id:15,text:"[훈련] AI 솔루션 서비스 게시",status:"시작 전",deadline:"2026-04-30",project:"취업률"},
+  {id:16,text:"[분석] 1차 취업 멘토링 만족도 분석",status:"시작 전",deadline:"2026-04-30",project:"취업률"},
+  {id:17,text:"[행정/법무] 그룹바이 플랫폼과 MOU 협약",status:"시작 전",deadline:"2026-05-08",project:"취업률"},
+  {id:18,text:"[매칭] 그룹바이 전담 헤드헌터 핀셋 연결",status:"시작 전",deadline:"2026-05-30",project:"취업률"},
+  {id:19,text:"[검증] 도입 및 사용성 검증",status:"시작 전",deadline:"2026-05-31",project:"취업률"},
+  {id:20,text:"취업저니맵 내 인턴십 보드 정의 및 역할 기획",status:"진행 중",deadline:"2026-04-03",project:"인턴십"},
+  {id:21,text:"인턴십 합격 단계별 매칭률 지표 정의",status:"진행 중",deadline:"2026-04-03",project:"인턴십"},
+  {id:22,text:"JD 표준화 AI Agent 제작",status:"진행 중",deadline:"2026-04-08",project:"인턴십"},
+  {id:23,text:"인턴십 통합 캘린더 세팅",status:"시작 전",deadline:"2026-04-08",project:"인턴십"},
+  {id:24,text:"인턴십 관리 기준 표준화",status:"시작 전",deadline:"2026-04-10",project:"인턴십"},
+  {id:25,text:"수료생 개별 기술 스택 DB화(DS6, 리서처 15)",status:"시작 전",deadline:"2026-04-23",project:"인턴십"},
+  {id:26,text:"기업 요구 스택과 훈련생 DB 매핑 로직 설계",status:"시작 전",deadline:"2026-04-23",project:"인턴십"},
+  {id:27,text:"성장이정표 기반 우수 인재 인증 및 기업 추천 반영",status:"시작 전",deadline:"2026-05-06",project:"인턴십"},
+  {id:28,text:"인턴십 추천 수료생 인재풀 구축",status:"시작 전",deadline:"2026-05-07",project:"인턴십"},
+  {id:29,text:"취업저니맵 내 기술 스택 매칭 내용 반영",status:"시작 전",deadline:"2026-05-14",project:"인턴십"},
+  {id:30,text:"인턴십 연계 기업 2차 확보 완료",status:"시작 전",deadline:"2026-05-21",project:"인턴십"},
+  {id:31,text:"취업저니맵 사이트 인턴십 메뉴/기능 업데이트",status:"시작 전",deadline:"2026-05-21",project:"인턴십"},
+  {id:32,text:"인턴십 매칭 운영 체계 구축",status:"시작 전",deadline:"2026-05-28",project:"인턴십"},
+  {id:33,text:"인턴십 관리 현황 모두연취업저니맵 연동",status:"시작 전",deadline:"2026-05-28",project:"인턴십"},
+  {id:34,text:"도입 및 사용성 검증 진행",status:"시작 전",deadline:"2026-05-31",project:"인턴십"},
+  {id:35,text:"인턴십 기업 및 훈련생 VOC 수집 및 분석",status:"시작 전",deadline:"2026-06-10",project:"인턴십"},
+  {id:36,text:"인턴십 매칭률 지표 세팅 및 성과 분석",status:"시작 전",deadline:"2026-06-10",project:"인턴십"},
+  {id:37,text:"매칭 관련 피드백을 토대로 매칭 로직 고도화",status:"시작 전",deadline:"2026-08-14",project:"인턴십"},
+  {id:38,text:"매칭률 관리 및 성과 개선",status:"시작 전",deadline:"2026-08-31",project:"인턴십"},
+];
+
+const CALENDAR_MEETINGS = [
+  {id:1,date:"2026-04-02",time:"11:00",endTime:"12:00",title:"어드미션 주간 미팅",done:false},
+  {id:2,date:"2026-04-03",time:"11:00",endTime:"12:00",title:"주간 PM 회의",done:false},
+  {id:3,date:"2026-04-03",time:"15:00",endTime:"16:00",title:"김영미님 멘토링 면담",done:false},
+  {id:4,date:"2026-04-06",time:"11:00",endTime:"12:00",title:"주간 정기 회의",done:false},
+];
+
+function getToday(){const d=new Date(),days=["일","월","화","수","목","금","토"];return d.getFullYear()+"."+(d.getMonth()+1)+"."+d.getDate()+" ("+days[d.getDay()]+")";}
+function getShortToday(){const d=new Date(),days=["일","월","화","수","목","금","토"];return(d.getMonth()+1)+"/"+d.getDate()+"("+days[d.getDay()]+")";}
+function diffDays(s){const t=new Date();t.setHours(0,0,0,0);const d=new Date(s);d.setHours(0,0,0,0);return Math.floor((d-t)/864e5);}
+function urgencyLabel(s){const diff=diffDays(s),d=new Date(s),days=["일","월","화","수","목","금","토"],dt=(d.getMonth()+1)+"/"+d.getDate()+"("+days[d.getDay()]+")";if(diff<0)return{text:"마감초과",color:"#ef4444",bg:"rgba(239,68,68,0.15)"};if(diff===0)return{text:"오늘 마감",color:"#ef4444",bg:"rgba(239,68,68,0.15)"};if(diff<=3)return{text:dt,color:"#f59e0b",bg:"rgba(245,158,11,0.15)"};if(diff<=7)return{text:dt,color:"#38bdf8",bg:"rgba(56,189,248,0.12)"};return{text:dt,color:"#64748b",bg:"rgba(255,255,255,0.04)"};}
+function projectColor(p){if(p==="런케이션")return{color:"#6ee7b7",bg:"rgba(110,231,183,0.15)"};if(p==="취업률")return{color:"#c084fc",bg:"rgba(192,132,252,0.15)"};return{color:"#fbbf24",bg:"rgba(251,191,36,0.15)"};}
+function statusBadge(s){if(s==="진행 중")return{text:"진행중",color:"#38bdf8",bg:"rgba(56,189,248,0.12)"};return null;}
+
+function Checkbox({checked,onChange,size=24}){
+  return React.createElement("button",{onClick:onChange,style:{width:size,height:size,borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,background:checked?"rgba(110,231,183,0.2)":"rgba(255,255,255,0.06)",border:checked?"2px solid #6ee7b7":"2px solid rgba(255,255,255,0.15)",cursor:"pointer",padding:0,minWidth:size,minHeight:size}},
+    checked&&React.createElement("svg",{width:12,height:10,viewBox:"0 0 10 8",fill:"none"},
+      React.createElement("path",{d:"M1 4L3.5 6.5L9 1",stroke:"#6ee7b7",strokeWidth:2,strokeLinecap:"round",strokeLinejoin:"round"})
+    )
+  );
+}
+
+function TaskItem({item,onToggle}){
+  const urg=urgencyLabel(item.deadline),proj=projectColor(item.project),st=statusBadge(item.status);
+  return React.createElement("div",{onClick:onToggle,style:{display:"flex",alignItems:"flex-start",gap:12,padding:"14px 16px",background:"rgba(255,255,255,0.02)",borderRadius:12,marginBottom:8,border:"1px solid rgba(255,255,255,0.05)",cursor:"pointer",WebkitUserSelect:"none"}},
+    React.createElement(Checkbox,{checked:item.done,onChange:e=>e.stopPropagation()}),
+    React.createElement("div",{style:{flex:1,minWidth:0}},
+      React.createElement("span",{style:{fontSize:14,lineHeight:1.6,display:"block",color:item.done?"#475569":"#e2e8f0",textDecoration:item.done?"line-through":"none",wordBreak:"keep-all"}},item.text),
+      React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:6,marginTop:6}},
+        urg&&React.createElement("span",{style:{fontSize:11,padding:"3px 8px",borderRadius:6,fontWeight:600,background:urg.bg,color:urg.color}},urg.text),
+        React.createElement("span",{style:{fontSize:11,padding:"3px 8px",borderRadius:6,background:proj.bg,color:proj.color}},item.project),
+        st&&React.createElement("span",{style:{fontSize:11,padding:"3px 8px",borderRadius:6,background:st.bg,color:st.color}},st.text)
+      ),
+      item.blocked&&React.createElement("div",{style:{fontSize:12,marginTop:4,color:"#f59e0b",display:"flex",alignItems:"center",gap:4}},"⏸ ",item.blocked)
+    )
+  );
+}
+
+function MeetingCard({item,onToggle}){
+  const d=new Date(item.date),days=["일","월","화","수","목","금","토"];
+  const dateLabel=(d.getMonth()+1)+"/"+d.getDate()+"("+days[d.getDay()]+")";
+  const diff=diffDays(item.date);
+  const isToday=diff===0;
+  const isTomorrow=diff===1;
+  const dayTag=isToday?"오늘":isTomorrow?"내일":dateLabel;
+  const tagColor=isToday?"#ef4444":isTomorrow?"#f59e0b":"#38bdf8";
+
+  return React.createElement("div",{onClick:onToggle,style:{padding:"16px",background:isToday?"rgba(239,68,68,0.06)":"rgba(255,255,255,0.02)",borderRadius:12,marginBottom:8,border:isToday?"1px solid rgba(239,68,68,0.2)":"1px solid rgba(255,255,255,0.05)",cursor:"pointer",display:"flex",alignItems:"center",gap:14}},
+    React.createElement("div",{style:{display:"flex",flexDirection:"column",alignItems:"center",flexShrink:0,minWidth:56}},
+      React.createElement("span",{style:{fontSize:11,color:tagColor,fontWeight:700,marginBottom:4,padding:"2px 8px",borderRadius:6,background:isToday?"rgba(239,68,68,0.12)":"rgba(56,189,248,0.08)"}},dayTag),
+      React.createElement("span",{style:{fontSize:16,fontWeight:800,color:"#f1f5f9"}},item.time)
+    ),
+    React.createElement("div",{style:{flex:1,minWidth:0}},
+      React.createElement("span",{style:{fontSize:15,fontWeight:600,color:item.done?"#475569":"#f1f5f9",textDecoration:item.done?"line-through":"none",display:"block"}},item.title),
+      React.createElement("span",{style:{fontSize:12,color:"#64748b",marginTop:4,display:"block"}},item.time+" ~ "+item.endTime)
+    ),
+    React.createElement(Checkbox,{checked:item.done,onChange:e=>e.stopPropagation()})
+  );
+}
+
+function StatCard({label,value,color,icon}){
+  return React.createElement("div",{style:{flex:1,textAlign:"center",padding:"12px 4px",background:"rgba(255,255,255,0.03)",borderRadius:12,border:"1px solid rgba(255,255,255,0.05)"}},
+    React.createElement("div",{style:{fontSize:20,marginBottom:4}},icon),
+    React.createElement("p",{style:{fontSize:20,fontWeight:800,color:color}},value),
+    React.createElement("p",{style:{fontSize:11,color:"#64748b",marginTop:2}},label)
+  );
+}
+
+function App(){
+  const [activeTab,setActiveTab]=useState("tasks");
+  const [projectFilter,setProjectFilter]=useState("all");
+  const [showDone,setShowDone]=useState(false);
+  const [tasks,setTasks]=useState(NOTION_TASKS.map(t=>({...t,done:false})));
+  const [meetings,setMeetings]=useState(CALENDAR_MEETINGS);
+
+  const toggleTask=id=>setTasks(p=>p.map(t=>t.id===id?{...t,done:!t.done}:t));
+  const toggleMeeting=id=>setMeetings(p=>p.map(m=>m.id===id?{...m,done:!m.done}:m));
+
+  const filtered=tasks.filter(t=>!t.done).filter(t=>projectFilter==="all"||t.project===projectFilter).sort((a,b)=>new Date(a.deadline)-new Date(b.deadline));
+  const overdue=filtered.filter(t=>diffDays(t.deadline)<0);
+  const thisWeek=filtered.filter(t=>{const d=diffDays(t.deadline);return d>=0&&d<=7;});
+  const later=filtered.filter(t=>diffDays(t.deadline)>7);
+  const inProg=tasks.filter(t=>!t.done&&t.status==="진행 중").length;
+  const urgent=overdue.length+thisWeek.filter(t=>diffDays(t.deadline)<=3).length;
+  const doneTasks=tasks.filter(t=>t.done).length;
+  const doneMtg=meetings.filter(m=>m.done).length;
+  const projects=["all","런케이션","취업률","인턴십"];
+
+  function renderSection(label,color,icon,items){
+    if(!items.length)return null;
+    return React.createElement("div",{style:{marginBottom:16}},
+      React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8,marginBottom:8,paddingLeft:4}},
+        React.createElement("span",{style:{fontSize:14}},icon),
+        React.createElement("span",{style:{fontSize:14,fontWeight:700,color:color}},label),
+        React.createElement("span",{style:{fontSize:12,fontWeight:600,color:color,opacity:0.7}},items.length+"건")
+      ),
+      items.map(t=>React.createElement(TaskItem,{key:t.id,item:t,onToggle:()=>toggleTask(t.id)}))
+    );
+  }
+
+  const tabContent=activeTab==="tasks"?React.createElement("div",{style:{padding:"12px 16px",paddingBottom:100}},
+    React.createElement("div",{style:{display:"flex",gap:8,marginBottom:16,overflowX:"auto",WebkitOverflowScrolling:"touch",paddingBottom:4}},
+      projects.map(p=>{
+        const cnt=p==="all"?tasks.filter(t=>!t.done).length:tasks.filter(t=>!t.done&&t.project===p).length;
+        const on=projectFilter===p;
+        const pc=p!=="all"?projectColor(p):{color:"#38bdf8",bg:"rgba(56,189,248,0.12)"};
+        return React.createElement("button",{key:p,onClick:()=>setProjectFilter(p),style:{fontSize:13,padding:"8px 16px",borderRadius:10,background:on?pc.bg:"rgba(255,255,255,0.04)",color:on?pc.color:"#64748b",border:on?"1.5px solid "+pc.color+"40":"1.5px solid rgba(255,255,255,0.08)",cursor:"pointer",whiteSpace:"nowrap",fontWeight:on?700:500,flexShrink:0}},(p==="all"?"전체":p)+" "+cnt);
+      })
+    ),
+    renderSection("마감 초과","#ef4444","🔴",overdue),
+    renderSection("이번 주 마감","#fbbf24","🟡",thisWeek),
+    renderSection("이후 일정","#64748b","⚪",later),
+    !filtered.length&&React.createElement("div",{style:{textAlign:"center",padding:"48px 0"}},
+      React.createElement("p",{style:{fontSize:40,marginBottom:12}},"🎉"),
+      React.createElement("p",{style:{fontSize:16,fontWeight:700,color:"#6ee7b7"}},"모든 업무 완료!"),
+      React.createElement("p",{style:{fontSize:13,color:"#475569",marginTop:4}},"오늘도 수고하셨습니다")
+    ),
+    (function(){
+      var done=tasks.filter(t=>t.done).filter(t=>projectFilter==="all"||t.project===projectFilter);
+      if(!done.length)return null;
+      return React.createElement("div",{style:{marginTop:16,borderTop:"1px solid rgba(255,255,255,0.06)",paddingTop:12}},
+        React.createElement("button",{onClick:()=>setShowDone(!showDone),style:{fontSize:13,color:"#475569",background:"none",border:"none",cursor:"pointer",padding:"8px 0",width:"100%",textAlign:"left",display:"flex",alignItems:"center",gap:8}},
+          React.createElement("span",{style:{fontSize:10,transition:"transform 0.2s",transform:showDone?"rotate(90deg)":"rotate(0)"}},"▶"),
+          "완료된 업무 ("+done.length+"건)"
+        ),
+        showDone&&done.map(t=>React.createElement(TaskItem,{key:t.id,item:t,onToggle:()=>toggleTask(t.id)}))
+      );
+    })()
+  ):React.createElement("div",{style:{padding:"12px 16px",paddingBottom:100}},
+    meetings.length?meetings.map(m=>React.createElement(MeetingCard,{key:m.id,item:m,onToggle:()=>toggleMeeting(m.id)})):
+    React.createElement("div",{style:{textAlign:"center",padding:"48px 0"}},
+      React.createElement("p",{style:{fontSize:40,marginBottom:12}},"📭"),
+      React.createElement("p",{style:{fontSize:16,fontWeight:700,color:"#64748b"}},"예정된 회의가 없습니다")
+    )
+  );
+
+  return React.createElement("div",{style:{height:"100%",display:"flex",flexDirection:"column",background:"#0f172a"}},
+    /* Header */
+    React.createElement("div",{style:{padding:"20px 20px 16px",background:"linear-gradient(180deg, rgba(56,189,248,0.08) 0%, transparent 100%)",borderBottom:"1px solid rgba(255,255,255,0.06)",flexShrink:0}},
+      React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}},
+        React.createElement("div",null,
+          React.createElement("p",{style:{fontSize:13,fontWeight:600,color:"#38bdf8",letterSpacing:"0.05em"}},getToday()),
+          React.createElement("h1",{style:{fontSize:20,fontWeight:800,color:"#f1f5f9",marginTop:4}},"봉성님의 업무 비서")
+        ),
+        urgent>0&&React.createElement("div",{style:{padding:"6px 14px",borderRadius:20,background:"rgba(239,68,68,0.12)",border:"1px solid rgba(239,68,68,0.3)",display:"flex",alignItems:"center",gap:6}},
+          React.createElement("span",{style:{fontSize:14}},"🔥"),
+          React.createElement("span",{style:{fontSize:13,fontWeight:700,color:"#ef4444"}},"긴급 "+urgent+"건")
+        )
+      ),
+      React.createElement("div",{style:{display:"flex",gap:8}},
+        React.createElement(StatCard,{label:"긴급",value:urgent,color:"#ef4444",icon:"🚨"}),
+        React.createElement(StatCard,{label:"진행중",value:inProg,color:"#38bdf8",icon:"⚡"}),
+        React.createElement(StatCard,{label:"미완료",value:filtered.length,color:"#f59e0b",icon:"📋"}),
+        React.createElement(StatCard,{label:"회의",value:doneMtg+"/"+meetings.length,color:"#6ee7b7",icon:"📅"})
+      )
+    ),
+
+    /* Scrollable Content */
+    React.createElement("div",{style:{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch"}},
+      tabContent
+    ),
+
+    /* Bottom Tab Bar */
+    React.createElement("div",{style:{flexShrink:0,display:"flex",borderTop:"1px solid rgba(255,255,255,0.08)",background:"rgba(8,15,35,0.98)",backdropFilter:"blur(20px)",paddingBottom:"env(safe-area-inset-bottom)"}},
+      [{id:"tasks",label:"업무",icon:"📋",badge:urgent},{id:"meetings",label:"회의",icon:"📅",badge:0}].map(t=>
+        React.createElement("button",{key:t.id,onClick:()=>setActiveTab(t.id),style:{flex:1,padding:"12px 0 10px",display:"flex",flexDirection:"column",alignItems:"center",gap:4,background:"none",border:"none",cursor:"pointer",position:"relative",borderTop:activeTab===t.id?"2px solid #38bdf8":"2px solid transparent"}},
+          React.createElement("span",{style:{fontSize:20,position:"relative"}},
+            t.icon,
+            t.badge>0&&React.createElement("span",{style:{position:"absolute",top:-4,right:-10,minWidth:18,height:18,borderRadius:9,background:"#ef4444",color:"white",fontSize:10,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",padding:"0 4px"}},t.badge)
+          ),
+          React.createElement("span",{style:{fontSize:11,fontWeight:activeTab===t.id?700:500,color:activeTab===t.id?"#38bdf8":"#64748b"}},t.label)
+        )
+      )
+    ),
+
+    /* Footer */
+    React.createElement("div",{style:{flexShrink:0,textAlign:"center",padding:"6px 0",background:"rgba(0,0,0,0.3)",borderTop:"1px solid rgba(255,255,255,0.04)",paddingBottom:"env(safe-area-inset-bottom)"}},
+      React.createElement("p",{style:{fontSize:10,color:"#334155"}},"모두연 AI 비서 v2.0m · "+getShortToday())
+    )
+  );
+}
+
+ReactDOM.render(React.createElement(App), document.getElementById("root"));
+
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+</script>
+</body>
+</html>
